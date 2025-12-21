@@ -1,53 +1,57 @@
+from dns.e164 import query
+
 from src.api.dependencies import PaginationDep
+from src.database import async_session_maker, engine
+from src.models import HotelsOrm
 from src.schemas.hotels import Hotel,Hotel_patch
 from typing import Annotated
 from fastapi import FastAPI,Query,Body,APIRouter,Depends
+from sqlalchemy import insert,select
 
 
 router= APIRouter(prefix = '/hotels',tags=['Hotels'])
 
-hotels = [
-    {'id':1,'title':'London','name':'London'},
-    {'id':2,'title':'Barcelona','name':'Barcelona'},
-    {'id':3,'title':'Tashkent','name':'Tashkent'},
-    {'id':4,'title':'Samarkand','name':'Samarkand'},
-    {'id':5,'title':'Berlin','name':'Berlin'},
-    {'id':6,'title':'Tbilisi','name':'Tbilisi'},
-    {'id':7,'title':'Athens','name':'Athens'},
-]
-
 
 
 @router.get('')
-def read_hotels(
+async def read_hotels(
         pagination:PaginationDep,
         id: int | None = Query(None, description="Hotel ID"),
-        title: str | None = Query(None, description="Hotel title")):
-    hotels_ = []
-    for hotel in hotels:
-        if id and hotel['id']!=id:
-            continue
-        if title and hotel['title']!= title:
-            continue
-        hotels_.append(hotel)
+        title: str | None = Query(None, description="Hotel title"),):
 
-    if pagination.page and pagination.per_page:
-        return hotels_[pagination.per_page*(pagination.page-1):][:pagination.per_page]
+    per_page = pagination.per_page or 5
+    async with (async_session_maker() as session):
+        query = select(HotelsOrm)
+        if id:
+            query = query.filter_by(id=id)
+        if title:
+            query= query.filter_by(title=title)
+        query = (
+            query
+            .limit(per_page)
+            .offset(per_page * (pagination.page - 1)))
+        result = await session.execute(query)
+
+        hotels = result.scalars().all()
+        #print(type(hotels),hotels)
+        return hotels
+
+    #if pagination.page and pagination.per_page:
     #return [hotel for hotel in hotels if hotel['title']==title and hotel['id'] == id]
 
 
 @router.post('')
-def create_hotels(hotel_info:Hotel = Body
+async def create_hotels(hotel_info:Hotel = Body
     (openapi_examples=
      {'1':{'summary':'London','value':{
     'title':'Your hotel in the capital!',
-    'name':'London Capitals'
+    'location':'London Capitals'
 }}})):
-    global hotels
-    hotels.append({
-        'id':hotels[-1]['id'] + 1,
-        'title':hotel_info.title
-    })
+    async with async_session_maker() as session:
+        add_hotel_stmt = insert (HotelsOrm).values(**hotel_info.model_dump())
+        print(add_hotel_stmt.compile(engine,compile_kwargs={'literal_binds':True}))
+        await session.execute(add_hotel_stmt)
+        await session.commit()
     return {'status': 'Ok'}
 
 @router.patch('/{hotel_id}')

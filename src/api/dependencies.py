@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class Pagination_params(BaseModel):
-    page: Annotated[int | None , Query(None, description='page', gt=0, lt=100)]
+    page: Annotated[int | None , Query(1, description='page', gt=0, lt=100)]
     per_page:Annotated[int | None , Query(None)]
 
 
