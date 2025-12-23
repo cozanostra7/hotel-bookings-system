@@ -39,11 +39,9 @@ async def create_hotels(hotel_info:Hotel = Body
     'location':'London Capitals'
 }}})):
     async with async_session_maker() as session:
-        add_hotel_stmt = insert (HotelsOrm).values(**hotel_info.model_dump())
-        print(add_hotel_stmt.compile(engine,compile_kwargs={'literal_binds':True}))
-        await session.execute(add_hotel_stmt)
+        hotel = await HotelsRepository(session).add(hotel_info)
         await session.commit()
-    return {'status': 'Ok'}
+    return {'status': 'Ok',"data":hotel}
 
 @router.patch('/{hotel_id}')
 def edit_hotel(hotel_id:int,
