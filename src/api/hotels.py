@@ -1,4 +1,4 @@
-from dns.e164 import query
+from sqlalchemy.orm import sessionmaker
 
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
@@ -6,7 +6,8 @@ from src.models import HotelsOrm
 from src.schemas.hotels import Hotel,Hotel_patch
 from typing import Annotated
 from fastapi import FastAPI,Query,Body,APIRouter,Depends
-from sqlalchemy import insert,select
+from sqlalchemy import insert,select,func
+from repositories.hotels import HotelsRepository
 
 
 router= APIRouter(prefix = '/hotels',tags=['Hotels'])
@@ -16,25 +17,28 @@ router= APIRouter(prefix = '/hotels',tags=['Hotels'])
 @router.get('')
 async def read_hotels(
         pagination:PaginationDep,
-        id: int | None = Query(None, description="Hotel ID"),
+        location: str | None = Query(None, description="location of the hotel"),
         title: str | None = Query(None, description="Hotel title"),):
 
-    per_page = pagination.per_page or 5
-    async with (async_session_maker() as session):
-        query = select(HotelsOrm)
-        if id:
-            query = query.filter_by(id=id)
-        if title:
-            query= query.filter_by(title=title)
-        query = (
-            query
-            .limit(per_page)
-            .offset(per_page * (pagination.page - 1)))
-        result = await session.execute(query)
-
-        hotels = result.scalars().all()
-        #print(type(hotels),hotels)
-        return hotels
+    async with async_session_maker() as session:
+       return await HotelsRepository(session).get_all()
+    # per_page = pagination.per_page or 5
+    # async with (async_session_maker() as session):
+    #     query = select(HotelsOrm)
+    #     if location:
+    #         query = query.filter(func.lower(HotelsOrm.location).contains(location.strip().lower()))
+    #     if title:
+    #         query= query.filter(func.lower(HotelsOrm.title).contains(title.strip().lower()))
+    #     query = (
+    #         query
+    #         .limit(per_page)
+    #         .offset(per_page * (pagination.page - 1)))
+    #     print(query.compile(compile_kwargs={"literal_binds":True}))
+    #     result = await session.execute(query)
+    #
+    #     hotels = result.scalars().all()
+    #     #print(type(hotels),hotels)
+    #     return hotels
 
     #if pagination.page and pagination.per_page:
     #return [hotel for hotel in hotels if hotel['title']==title and hotel['id'] == id]
