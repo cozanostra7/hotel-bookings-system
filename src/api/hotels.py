@@ -1,3 +1,4 @@
+from sqlalchemy.ext.asyncio import async_session
 from sqlalchemy.orm import sessionmaker
 
 from src.api.dependencies import PaginationDep
@@ -55,15 +56,15 @@ def edit_hotel(hotel_id:int,
         hotel['name']=hotel_info.name
     return {'status':'Ok'}
 @router.put('/{hotel_id}')
-def update_hotels(hotel_id:int,hotel_info:Hotel):
-    global hotels
-    hotel = [hotel for hotel in hotels if hotel['id']== hotel_id][0]
-    hotel['title'] = hotel_info.title
-    hotel['name'] = hotel_info.name
+async def update_hotels(hotel_id:int,hotel_info:Hotel):
+    async with async_session_maker() as session:
+        hotel = await HotelsRepository(session).edit(hotel_info,id = hotel_id)
+        await session.commit()
     return {'status': 'Ok'}
 
 @router.delete('/{hotel_id}')
-def delete_hotel(hotel_id:int):
-    global hotels
-    hotels = [hotel for hotel in hotels if hotel['id']!=hotel_id]
+async def delete_hotel(hotel_id:int):
+    async with async_session_maker() as session:
+        await HotelsRepository(session).delete(id=hotel_id)
+        await session.commit()
     return {'status':'Ok'}
