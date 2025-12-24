@@ -1,13 +1,7 @@
-from sqlalchemy.ext.asyncio import async_session
-from sqlalchemy.orm import sessionmaker
-
 from src.api.dependencies import PaginationDep
-from src.database import async_session_maker, engine
-from src.models import HotelsOrm
+from src.database import async_session_maker
 from src.schemas.hotels import Hotel,Hotel_patch
-from typing import Annotated
-from fastapi import FastAPI,Query,Body,APIRouter,Depends
-from sqlalchemy import insert,select,func
+from fastapi import Query,Body,APIRouter
 from repositories.hotels import HotelsRepository
 
 
@@ -45,20 +39,17 @@ async def create_hotels(hotel_info:Hotel = Body
     return {'status': 'Ok',"data":hotel}
 
 @router.patch('/{hotel_id}')
-def edit_hotel(hotel_id:int,
+async def edit_hotel(hotel_id:int,
                hotel_info:Hotel_patch):
 
-    global hotels
-    hotel = [hotel for hotel in hotels if hotel['id']==hotel_id][0]
-    if hotel_info.title:
-        hotel['title']=hotel_info.title
-    if hotel_info.name:
-        hotel['name']=hotel_info.name
+    async with async_session_maker() as session:
+        await HotelsRepository(session).edit(hotel_info,partially_edited=True,id = hotel_id)
+        await session.commit()
     return {'status':'Ok'}
 @router.put('/{hotel_id}')
 async def update_hotels(hotel_id:int,hotel_info:Hotel):
     async with async_session_maker() as session:
-        hotel = await HotelsRepository(session).edit(hotel_info,id = hotel_id)
+        await HotelsRepository(session).edit(hotel_info,id = hotel_id)
         await session.commit()
     return {'status': 'Ok'}
 
