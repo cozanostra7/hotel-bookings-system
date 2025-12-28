@@ -1,10 +1,10 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserRequestAdd(BaseModel):
     email:EmailStr
     password:str
-    fullname:str
+    fullname:str | None = Field(None)
 
 
 class  UserAdd(BaseModel):
