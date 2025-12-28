@@ -1,6 +1,8 @@
-
-from http.client import HTTPException, responses
+from http.client import HTTPException
 from fastapi import APIRouter
+from starlette.requests import Request
+from starlette.responses import Response
+
 from src.config import settings
 from src.repositories.users import UsersRepository
 from src.database import async_session_maker
@@ -23,7 +25,7 @@ async def register_user(data: UserRequestAdd):
 
 
 @router.post('/login')
-async def login_user(data: UserRequestAdd):
+async def login_user(data: UserRequestAdd,response:Response):
     async with async_session_maker() as session:
         user = await UsersRepository(session).get_one_or_none(email=data.email)
         if not user:
@@ -32,4 +34,11 @@ async def login_user(data: UserRequestAdd):
         if not AuthService().verify_password(data.password,user.hashed_password):
             raise HTTPException(status_code=401,detail='invalid password')
         access_token = AuthService().create_access_token({'user_id':user.id})
+        response.set_cookie('access_token',access_token)
         return {'access_token':access_token}
+
+
+@router.get('/only_auth')
+async def only_auth(request:Request):
+    access_token = request.cookies.get('access_token',None)
+    return access_token
