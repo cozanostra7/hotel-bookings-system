@@ -1,5 +1,5 @@
 from pydantic import BaseModel,Field,ConfigDict
-from sqlalchemy import ForeignKey
+
 
 
 class RoomAddRequest(BaseModel):
