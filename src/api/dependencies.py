@@ -3,7 +3,9 @@ from fastapi import Depends, Query,HTTPException
 from pydantic import BaseModel
 from starlette.requests import Request
 
+from src.database import async_session_maker
 from src.services.auth import AuthService
+from src.utils.db_manager import DBManager
 
 
 class Pagination_params(BaseModel):
@@ -30,7 +32,7 @@ UserIDDep = Annotated[int,Depends(get_current_user_id)]
 
 
 def get_db_manager():
-    return DBManager()
+    return DBManager(session_factory=async_session_maker)
 
 
 async def get_db():

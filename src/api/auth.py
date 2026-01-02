@@ -1,8 +1,7 @@
-from fastapi import HTTPException,status
+from fastapi import HTTPException
 from fastapi import APIRouter
 from starlette.responses import Response
-from src.api.dependencies import UserIDDep
-from src.config import settings
+from src.api.dependencies import UserIDDep, DBDep
 from src.repositories.users import UsersRepository
 from src.database import async_session_maker
 from src.schemas.users import UserRequestAdd, UserAdd
@@ -13,20 +12,18 @@ from src.services.auth import AuthService
 router = APIRouter(prefix="/auth",tags=["Authentication and Authorization"])
 
 @router.post('/register')
-async def register_user(data: UserRequestAdd):
+async def register_user(data: UserRequestAdd,db:DBDep):
     hashed_password=AuthService().hash_password(data.password)
     new_user_data = UserAdd(fullname=data.fullname,email=data.email,hashed_password=hashed_password)
-    async with async_session_maker() as session:
-        await UsersRepository(session).add(new_user_data)
-        await session.commit()
+    await db.users.add(new_user_data)
+    await db.commit()
     return {'status': 'Ok'}
 
 
 
 @router.post('/login')
-async def login_user(data: UserRequestAdd,response:Response):
-    async with async_session_maker() as session:
-        user = await UsersRepository(session).get_one_or_none(email=data.email)
+async def login_user(data: UserRequestAdd,response:Response,db:DBDep):
+        user = await db.users.get_one_or_none(email=data.email)
         if not user:
             raise HTTPException(status_code=401,detail='User with this email not found')
 
@@ -38,12 +35,9 @@ async def login_user(data: UserRequestAdd,response:Response):
 
 
 @router.get('/me')
-async def me(
-                    user_id:UserIDDep
-):
+async def me(user_id:UserIDDep,db:DBDep):
 
-    async with async_session_maker() as session:
-        user = await UsersRepository(session).get_one_or_none(id=user_id)
+    user = await db.users.get_one_or_none(id=user_id)
     return user
 
 @router.post('/logout')
