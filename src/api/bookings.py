@@ -1,12 +1,22 @@
 from src.schemas.bookings import BookingAdd,BookingAddRequest
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from src.api.dependencies import DBDep, UserIDDep
 
 router= APIRouter(prefix = '/bookings',tags=['bookings'])
 
+
+@router.get('')
+async def read_all_bookings(db:DBDep, ):
+        return await db.bookings.get_all()
+
+@router.get('/me')
+async def get_my_bookings(db:DBDep,user_id:UserIDDep):
+        return await db.bookings.get_filtered(user_id=user_id)
+
+
+
 @router.post('')
 async def add_bookings(
-        room_id:int,
         user_id:UserIDDep,
         db:DBDep,
         booking_info:BookingAddRequest):
@@ -23,3 +33,5 @@ async def add_bookings(
         booking = await db.bookings.add(_booking_info)
         await db.commit()
         return {'status':'Ok','data':booking}
+
+
