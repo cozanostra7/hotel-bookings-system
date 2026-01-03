@@ -1,9 +1,5 @@
 from pydantic import BaseModel
 from sqlalchemy import select,insert,update,delete
-from sqlalchemy.orm import sessionmaker
-
-from src.models import HotelsOrm
-from src.schemas.hotels import Hotel
 
 
 class BaseRepository:
@@ -13,8 +9,12 @@ class BaseRepository:
     def __init__(self,session):
         self.session = session
 
-    async def get_filtered(self,**filter_by):
-            query = select(self.model).filter_by(**filter_by)
+    async def get_filtered(self,*filter,**filter_by):
+            query = (
+                select(self.model).filter_by(**filter_by)
+                .filter(*filter)
+                .filter_by(**filter_by))
+
             result = await self.session.execute(query)
             return [self.schema.model_validate(model) for model in result.scalars().all()]
 
