@@ -7,6 +7,8 @@ router= APIRouter(prefix = '/facilities',tags=['Facilities'])
 
 @router.get('')
 async def get_all_facilities(db:DBDep):
+
+
     return await db.facilities.get_all()
 
 @router.post('')

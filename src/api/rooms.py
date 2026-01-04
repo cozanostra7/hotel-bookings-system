@@ -1,4 +1,6 @@
 from datetime import date
+
+from src.schemas.facilitites import RoomsFacilityAdd, FacilityAdd
 from src.schemas.rooms import RoomAdd, RoomAddRequest, Room_patchRequest
 from fastapi import Query,Body,APIRouter
 from src.api.dependencies import DBDep
@@ -31,11 +33,14 @@ async def create_room(db:DBDep,hotel_id:int,room_info:RoomAddRequest = Body
          'title': 'Title of the hotel!',
          'description': 'Description of the hotel',
          'price':150,
-         'quantity':2
+         'quantity':2,
+         'facilities_ids':[0],
      }}})
                       ):
     _room_data = RoomAdd(hotel_id=hotel_id, **room_info.model_dump())
     room = await db.rooms.add(_room_data)
+    rooms_facilities_data = [RoomsFacilityAdd(room_id=room.id,facility_id=f_id) for f_id in room_info.facilities_ids]
+    await db.rooms_facilities.add_bulk(rooms_facilities_data)
     await db.commit()
     return {"status": "OK", "data": room}
 
@@ -51,7 +56,10 @@ async def partially_edit_rooms(
     return {'status':'Ok'}
 
 @router.put('/{hotel_id}/rooms/{room_id}')
-async def update_rooms(hotel_id:int,room_id:int,room_info:RoomAddRequest,db:DBDep):
+async def update_rooms(hotel_id:int,room_id:int,
+                       room_info:RoomAddRequest,
+
+                       db:DBDep):
     _room_data = RoomAdd(hotel_id=hotel_id, **room_info.model_dump())
     await db.rooms.edit(_room_data,id = room_id)
     await db.commit()
