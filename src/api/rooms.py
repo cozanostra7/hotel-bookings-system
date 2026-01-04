@@ -1,6 +1,6 @@
 from datetime import date
 
-from src.schemas.facilitites import RoomsFacilityAdd, FacilityAdd
+from src.schemas.facilitites import RoomsFacilityAdd
 from src.schemas.rooms import RoomAdd, RoomAddRequest, Room_patchRequest, Room_patch
 from fastapi import Query,Body,APIRouter
 from src.api.dependencies import DBDep
@@ -23,7 +23,7 @@ async def get_room(
         db:DBDep,
 
 ):
-        return await db.rooms.get_one_or_none(id = room_id,hotel_id=hotel_id)
+        return await db.rooms.get_room_with_facilities(id = room_id,hotel_id=hotel_id)
 
 
 @router.post('/{hotel_id}/rooms')

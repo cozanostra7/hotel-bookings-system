@@ -18,7 +18,7 @@ class BaseRepository:
             result = await self.session.execute(query)
             return [self.schema.model_validate(model) for model in result.scalars().all()]
 
-    async def get_all(self,*args,**kwargs):
+    async def get_all(self):
             return await self.get_filtered()
 
 
