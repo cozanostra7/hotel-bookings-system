@@ -23,7 +23,7 @@ async def register_user(data: UserRequestAdd,db:DBDep):
 
 @router.post('/login')
 async def login_user(data: UserRequestAdd,response:Response,db:DBDep):
-        user = await db.users.get_one_or_none(email=data.email)
+        user = await db.users.get_user_with_hashed_password(email=data.email)
         if not user:
             raise HTTPException(status_code=401,detail='User with this email not found')
 
