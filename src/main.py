@@ -1,21 +1,31 @@
-import uvicorn
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from fastapi.openapi.docs import (
-    get_swagger_ui_html,
-)
+from fastapi.openapi.docs import get_swagger_ui_html
+import uvicorn
+
 import sys
 from pathlib import Path
 
+from init import redis_manager
+
 sys.path.append(str(Path(__file__).parent.parent))
+
 from src.api.hotels import router as router_hotels
-from src.api.auth import router as router_auth
 from src.api.rooms import router as router_rooms
+from src.api.auth import router as router_auth
 from src.api.bookings import router as router_bookings
 from src.api.facilities import router as router_facilities
-from src.config import settings
 
 
-app = FastAPI(docs_url=None, redoc_url=None)
+@asynccontextmanager
+async def lifespan(app:FastAPI):
+    await redis_manager.connect()
+    yield
+    await redis_manager.close()
+
+
+app = FastAPI(docs_url=None,lifespan=lifespan)
 
 
 app.include_router(router_auth)
