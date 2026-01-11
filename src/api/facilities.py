@@ -1,25 +1,14 @@
-import json
 from fastapi import APIRouter,Body
-from init import redis_manager
 from src.api.dependencies import DBDep
 from src.schemas.facilitites import FacilityAdd
+from fastapi_cache.decorator import cache
 
 router= APIRouter(prefix = '/facilities',tags=['Facilities'])
 
 @router.get('')
+@cache(expire=10)
 async def get_all_facilities(db:DBDep):
-    facilities_from_cache = await redis_manager.get('facilities')
-    print(f'{facilities_from_cache}')
-    if not facilities_from_cache:
-        print('I will check the database')
-        facilities =  await db.facilities.get_all()
-        facilities_schemas :list[dict] = [f.model_dump()for f in facilities]
-        facilities_json = json.dumps(facilities_schemas)
-        await redis_manager.set('facilities',facilities_json,10)
-        return facilities
-    else:
-        facilities_dicts = json.loads(facilities_from_cache)
-        return facilities_dicts
+        return await db.facilities.get_all()
 
 
 @router.post('')

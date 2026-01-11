@@ -1,58 +1,35 @@
 import redis.asyncio as redis
-from typing import Optional, Any
 
 
 class RedisManager:
-    def __init__(
-        self,
-        host: str = "localhost",
-        port: int = 6379,
-        db: int = 0,
-        password: str | None = None,
-        decode_responses: bool = True,
-    ):
+    def __init__(self, host: str, port: int):
         self.host = host
         self.port = port
-        self.db = db
-        self.password = password
-        self.decode_responses = decode_responses
-        self._client: redis.Redis | None = None
+        self.redis = None
 
-    async def connect(self) -> None:
-        self._client = redis.Redis(
-            host=self.host,
-            port=self.port,
-            db=self.db,
-            password=self.password,
-            decode_responses=self.decode_responses,
-        )
-        await self._client.ping()
+    async def connect(self):
+        self.redis = await redis.Redis(host=self.host, port=self.port)
 
-    async def close(self) -> None:
-        if self._client:
-            await self._client.close()
+    async def set(self, key: str, value: str, expire: int = None):
+        if expire:
+            await self.redis.set(key, value, ex=expire)
+        else:
+            await self.redis.set(key, value)
 
-    async def set(
-        self,
-        key: str,
-        value: Any,
-        expire: int = None,
-    ) -> None:
+    async def get(self, key: str):
+        return await self.redis.get(key)
 
-        if not self._client:
-            raise RuntimeError("Redis is not connected")
+    async def delete(self, key: str):
+        await self.redis.delete(key)
 
-        await self._client.set(name=key, value=value, ex=expire)
+    async def close(self):
+        if self.redis:
+            await self.redis.close()
 
-    async def get(self, key: str) -> Optional[str]:
-        if not self._client:
-            raise RuntimeError("Redis is not connected")
-
-        return await self._client.get(name=key)
-
-    async def delete(self, key: str) -> None:
-        if not self._client:
-            raise RuntimeError("Redis is not connected")
-
-        await self._client.delete(key)
-
+# Instructions:
+# redis_manager = RedisManager(redis_url="redis://localhost")
+# await redis_manager.connect()
+# await redis_manager.set("key", "value", expire=60)
+# value = await redis_manager.get("key")
+# await redis_manager.delete("key")
+# await redis_manager.close()

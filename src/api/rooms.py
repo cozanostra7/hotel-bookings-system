@@ -4,9 +4,11 @@ from src.schemas.facilitites import RoomsFacilityAdd
 from src.schemas.rooms import RoomAdd, RoomAddRequest, Room_patchRequest, Room_patch
 from fastapi import Query,Body,APIRouter
 from src.api.dependencies import DBDep
+from fastapi_cache.decorator import cache
 router= APIRouter(prefix = '/hotels',tags=['Rooms'])
 
 @router.get('/{hotel_id}/rooms')
+@cache(expire=10)
 async def get_all_rooms(hotel_id:int,
                         db:DBDep,
                         date_from: date = Query(example='2026-02-01'),
@@ -17,6 +19,7 @@ async def get_all_rooms(hotel_id:int,
 
 
 @router.get("/{hotel_id}/rooms/{room_id}")
+@cache(expire=10)
 async def get_room(
         hotel_id:int,
         room_id:int,
