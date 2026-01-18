@@ -1,7 +1,11 @@
+import asyncio
 from time import sleep
 from PIL import Image
 import os
+
+from src.database import async_session_maker_null_poll
 from src.tasks.celery_app import celery_instance
+from src.utils.db_manager import DBManager
 
 
 @celery_instance.task
@@ -30,3 +34,15 @@ def resize_image(image_path: str):
         img_resized.save(output_path)
 
     print(f"Images save in the following size: {sizes} in {output_folder}")
+
+
+async def get_booking_with_checkin_day_helper():
+    print('Function started')
+    async with DBManager(session_factory=async_session_maker_null_poll) as db:
+        bookings = await db.bookings.get_bookings_with_checkin()
+        print(f'{bookings}')
+
+
+@celery_instance.task(name='booking_today_checkin')
+def send_emails_on_checkin():
+    asyncio.run(get_booking_with_checkin_day_helper())
