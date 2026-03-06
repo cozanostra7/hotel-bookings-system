@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import pytest
+from sqlalchemy import True_
 
 from src.config import settings
 from src.database import Base, engine_null_pool, async_session_maker_null_poll, async_session_maker
@@ -49,12 +50,18 @@ async def setup_database(check_test_mode):
         await db_.commit()
 
 
+@pytest.fixture(scope='session')
+async def ac()->AsyncClient:
+    async with AsyncClient(app=app, base_url='http://test') as ac:
+        yield ac
+
+
 @pytest.fixture(scope='session',autouse=True)
-async def register_user(setup_database):
-    async with AsyncClient(app=app,base_url='http://test') as ac:
+async def register_user(ac,setup_database):
         await ac.post(
             '/auth/register',
                     json={
                      'email':'pes@kot.com',
                      'password':'123456',
                      'fullname': 'Test User'})
+
