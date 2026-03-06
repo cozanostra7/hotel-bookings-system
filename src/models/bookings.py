@@ -18,7 +18,7 @@ class BookingsOrm(Base):
     price:Mapped[int]
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        server_default=func.now(),  # ✅ set automatically by DB
+        server_default=func.now(),
         nullable=False,
     )
 
