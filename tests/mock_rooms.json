@@ -1,0 +1,30 @@
+[
+    {
+        "hotel_id": 1,
+        "title": "fully-furnitured with sofa and balcony",
+        "description": "A wonderful room",
+        "price": 24500,
+        "quantity": 5
+    },
+    {
+        "hotel_id": 1,
+        "title": "Deluxe Plus",
+        "description": "The best room.",
+        "price": 22450,
+        "quantity": 10
+    },
+    {
+        "hotel_id": 2,
+        "title": "Room for 2 people",
+        "description": "Stunning view.",
+        "price": 4570,
+        "quantity": 15
+    },
+    {
+        "hotel_id": 3,
+        "title": "Room for 3 people",
+        "description": null,
+        "price": 4350,
+        "quantity": 8
+    }
+]
