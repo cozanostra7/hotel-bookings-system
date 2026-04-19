@@ -7,4 +7,4 @@ async def test_add_hotel(db):
     hotel_info = HotelAdd(title='Silk Road',location='Samarkand')
 
     new_hotel_data = await db.hotels.add(hotel_info)
-    await db.commit()
+    await db.commit() 
