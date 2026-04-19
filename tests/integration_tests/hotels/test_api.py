@@ -5,7 +5,7 @@ async def test_get_hotel(ac):
         '/hotels',
                 params={
                     'date_from':'2026-01-19',
-                    'date_to':'2026-01-29',
+                    'date_to':'2026-01-29'
                             })
     print(f'{response.json()=}')
     
