@@ -22,6 +22,9 @@ from src.api.images import router as router_images
 
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
+from fastapi_cache.backends.inmemory import InMemoryBackend
+
+from src.config import settings
 
 
 @asynccontextmanager
@@ -30,6 +33,11 @@ async def lifespan(app:FastAPI):
     FastAPICache.init(RedisBackend(redis_manager.redis), prefix="fastapi-cache")
     yield
     await redis_manager.close()
+
+
+if settings.MODE == 'TEST':
+    FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")
+
 
 
 app = FastAPI(docs_url=None,lifespan=lifespan)

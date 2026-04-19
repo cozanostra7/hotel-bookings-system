@@ -1,8 +1,10 @@
 import json
 from pathlib import Path
+from unittest import mock
+
+mock.patch('fastapi_cache.decorator.cache',lambda *args,**kwargs:lambda f: f).start()
 
 import pytest
-from sqlalchemy import True_
 
 from api.dependencies import get_db
 from src.config import settings
@@ -62,7 +64,7 @@ async def setup_database(check_test_mode):
 
 
 @pytest.fixture(scope='session')
-async def ac()->AsyncClient:
+async def ac() -> AsyncClient:
     async with AsyncClient(app=app, base_url='http://test') as ac:
         yield ac
 

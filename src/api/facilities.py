@@ -8,7 +8,7 @@ from src.tasks.tasks import test_task
 router= APIRouter(prefix = '/facilities',tags=['Facilities'])
 
 @router.get('')
-#@cache(expire=10)
+@cache(expire=10)
 async def get_all_facilities(db:DBDep):
         test_task.delay()
         return await db.facilities.get_all()
