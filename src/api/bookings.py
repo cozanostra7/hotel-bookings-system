@@ -21,6 +21,7 @@ async def add_bookings(
         db:DBDep,
         booking_info:BookingAddRequest):
         room = await db.rooms.get_one_or_none(id=booking_info.room_id)
+        hotel = await db.hotels.get_one_or_none(id=room.hotel_id)
         room_price:int=room.price
         _booking_info = BookingAdd(
                 user_id=user_id,
@@ -30,7 +31,7 @@ async def add_bookings(
 
 
 
-        booking = await db.bookings.add(_booking_info)
+        booking = await db.bookings.add_bookings(_booking_info,hotel_id=hotel.id)
         await db.commit()
         return {'status':'Ok','data':booking}
 
